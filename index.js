@@ -1,30 +1,15 @@
-const fs = require('fs');
 const http = require('http');
-const mammoth = require('mammoth');
+const crypt = require('./cipher.js');
 const PORT = 3500;
 
-const app = http.createServer((req, res) => {
-    fs.readFile('resume.docx', (err, data) => {
-        if (err) {
-            res.writeHead(500, { 'Content-Type': 'text/plain' });
-            res.write('Error reading file: ' + err.message);
-            return res.end();
-        }
-
-        mammoth.convertToHtml({ buffer: data })
-            .then(result => {
-                res.writeHead(200, { 'Content-Type': 'text/html' });
-                res.write(result.value); // The generated HTML
-                res.end();
-            })
-            .catch(err => {
-                res.writeHead(500, { 'Content-Type': 'text/plain' });
-                res.write('Error converting file: ' + err.message);
-                res.end();
-            });
-    });
-});
-
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+const x = http.createServer((req,res)=>{
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    var message = "hello world";
+    var encrypt = crypt.encrypt(message);
+    res.write(`<h1>the ${message} after encrypted in ${encrypt.encryptedData}<br/>`);
+    res.write(`the decrypted message is ${crypt.decrypt(encrypt.encryptedData,encrypt.iv)}</h1>`)
+    res.write(`the hashed message is ${crypt.hmac(message)}</h1>`)
+})
+x.listen(PORT,()=>{
+    console.log(`server is listening at http://localhost:${PORT}`);
+})

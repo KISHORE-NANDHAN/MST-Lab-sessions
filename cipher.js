@@ -1,12 +1,27 @@
-var CryptoJS = require("crypto-js");
+const crypto = require('crypto');
 
-// Encrypt
-var msg = "hello world";
-var ciphertext = CryptoJS.AES.encrypt(msg, 'secret key 123').toString();
+const algorithm = 'aes-256-cbc';
+const key = crypto.randomBytes(32);
+const iv = crypto.randomBytes(16);
 
-// Decrypt
-var bytes  = CryptoJS.AES.decrypt(ciphertext, 'secret key 123');
-var originalText = bytes.toString(CryptoJS.enc.Utf8);
+exports.encrypt = (text) => {
+    const cipher = crypto.createCipheriv(algorithm, key, iv);
+    let encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return {
+        iv: iv.toString('hex'),
+        encryptedData: encrypted
+    };
+};
 
-console.log(ciphertext)
-console.log(originalText);
+// Function to decrypt a message
+exports.decrypt = (encryptedData, iv) => {
+    const decipher = crypto.createDecipheriv(algorithm, key, Buffer.from(iv, 'hex'));
+    let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
+};
+
+exports.hmac = (message) => {
+    return crypto.createHmac("sha256", "a secret").update(message).digest("hex");
+};
